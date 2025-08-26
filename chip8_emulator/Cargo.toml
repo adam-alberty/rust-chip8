@@ -1,0 +1,8 @@
+[package]
+name = "chip8_emulator"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gtk = { version = "0.10.0", package = "gtk4" }
+lib_chip8 = { path = "../lib_chip8" }

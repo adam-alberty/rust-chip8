@@ -1,5 +1,3 @@
-mod lib_chip8;
-
 use lib_chip8::Chip8;
 
 fn main() {
