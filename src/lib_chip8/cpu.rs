@@ -1,10 +1,19 @@
+const REGISTER_COUNT: usize = 16;
+
 pub struct Cpu {
     pub v: GeneralRegisters, // general purpose registers
     pub i: IRegister,
     pub pc: ProgramCounter,
 }
-
-const REGISTER_COUNT: usize = 16;
+impl Cpu {
+    pub fn new() -> Self {
+        Cpu {
+            v: GeneralRegisters([0; REGISTER_COUNT]),
+            i: IRegister(0),
+            pc: ProgramCounter(0x200),
+        }
+    }
+}
 
 pub struct GeneralRegisters([u8; REGISTER_COUNT]);
 impl GeneralRegisters {
