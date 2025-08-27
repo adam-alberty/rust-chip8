@@ -9,24 +9,38 @@ use winit::{
     window::{Window, WindowId},
 };
 
-struct App {
+struct App<'a> {
     window: Option<Window>,
+    pixels: Option<Pixels<'a>>,
     chip8: Chip8,
 }
 
-impl ApplicationHandler for App {
+impl<'a> ApplicationHandler for App<'a> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let (width, height) = self.chip8.display.get_resolution();
 
         // Create a window
-        let window = event_loop
-            .create_window(
-                Window::default_attributes()
-                    .with_title("CHIP-8 Emulator")
-                    .with_inner_size(LogicalSize::new(width as f64 * 10.0, height as f64 * 10.0)),
-            )
-            .unwrap();
-        self.window = Some(window);
+        self.window = Some(
+            event_loop
+                .create_window(
+                    Window::default_attributes()
+                        .with_title("CHIP-8 Emulator")
+                        .with_inner_size(LogicalSize::new(
+                            width as f64 * 10.0,
+                            height as f64 * 10.0,
+                        )),
+                )
+                .unwrap(),
+        );
+
+        let pixels = Pixels::new(
+            width as u32,
+            height as u32,
+            SurfaceTexture::new(width as u32, height as u32, self.window.as_ref().unwrap()),
+        )
+        .unwrap();
+
+        self.pixels = Some(pixels);
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
@@ -37,16 +51,13 @@ impl ApplicationHandler for App {
             }
 
             WindowEvent::RedrawRequested => {
-                if let Some(window) = &self.window {
+                if let (Some(window), Some(pixels)) = (&self.window, &mut self.pixels) {
                     let (width, height) = self.chip8.display.get_resolution();
 
                     // execute chip8 instruction
-                    //                    self.chip8.tick();
+                    self.chip8.tick();
 
                     // Create the pixel buffer
-                    let surface_texture = SurfaceTexture::new(width as u32, height as u32, &window);
-                    let mut pixels =
-                        Pixels::new(width as u32, height as u32, surface_texture).unwrap();
                     let frame = pixels.frame_mut();
 
                     let display = self.chip8.display.dump();
@@ -90,6 +101,7 @@ fn main() -> Result<(), EventLoopError> {
 
     let mut app = App {
         window: None,
+        pixels: None,
         chip8: chip,
     };
 
