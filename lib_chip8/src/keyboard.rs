@@ -1,9 +1,9 @@
-const KEY_COUNT: usize = 16;
+const KEY_COUNT: u8 = 16;
 
-pub struct Keyboard([bool; KEY_COUNT]);
+pub struct Keyboard([bool; KEY_COUNT as usize]);
 impl Keyboard {
     pub fn new() -> Self {
-        Keyboard([false; KEY_COUNT])
+        Keyboard([false; KEY_COUNT as usize])
     }
 
     pub fn is_pressed(&mut self, key: u8) -> bool {
@@ -11,5 +11,14 @@ impl Keyboard {
             return false;
         }
         self.0[key as usize]
+    }
+
+    pub fn get_pressed_key(&mut self) -> Option<u8> {
+        for idx in 0..KEY_COUNT {
+            if self.0[idx as usize] {
+                return Some(idx);
+            }
+        }
+        None
     }
 }

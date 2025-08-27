@@ -19,6 +19,10 @@ impl Display {
         self.0.fill(false);
     }
 
+    pub fn get_resolution(&self) -> (usize, usize) {
+        (DISPLAY_WIDTH, DISPLAY_HEIGHT)
+    }
+
     pub fn display_sprite(&mut self, pos_x: usize, pos_y: usize, data: &[u8]) -> bool {
         let mut collision = false;
 

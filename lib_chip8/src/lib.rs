@@ -4,6 +4,7 @@ mod cpu;
 mod display;
 mod keyboard;
 mod memory;
+mod parser;
 mod stack;
 mod timers;
 
@@ -18,7 +19,7 @@ pub struct Chip8 {
     cpu: Cpu,
     stack: Stack,
     memory: Memory,
-    display: Display,
+    pub display: Display,
     keyboard: Keyboard,
     timers: Timers,
 }
@@ -41,6 +42,88 @@ impl Chip8 {
 
     pub fn load_rom(&mut self, bytes: &[u8]) -> Result<(), String> {
         self.memory.load(bytes)
+    }
+
+    pub fn tick(&mut self) {
+        self.execute(self.fetch());
+    }
+
+    //////////////////////////////////////
+    ///    FETCH / DECODE / EXECUTE    ///
+    //////////////////////////////////////
+
+    fn fetch(&self) -> u16 {
+        let instruction_memory: [u8; 2] = self
+            .memory
+            .get_slice(self.cpu.pc.get() as usize, 2)
+            .try_into()
+            .expect("instruction should be 2 bytes");
+
+        u16::from_be_bytes(instruction_memory)
+    }
+
+    fn execute(&mut self, instruction: u16) {
+        match instruction & 0xf000 {
+            0x0000 => match instruction {
+                0x00e0 => self.op_clear_display(),
+                0x00ee => self.op_return_from_subroutine(),
+                _ => panic!("unknown 0x0nnn instruction"),
+            },
+            0x1000 => self.op_jump(parser::nnn(instruction)),
+            0x2000 => self.op_call(parser::nnn(instruction)),
+            0x3000 => self.op_skip_equal(parser::x(instruction), parser::kk(instruction)),
+            0x4000 => self.op_skip_not_equal(parser::x(instruction), parser::kk(instruction)),
+            0x5000 => match instruction & 0x000f {
+                0x0 => self.op_skip_equal_registers(parser::x(instruction), parser::y(instruction)),
+                _ => panic!("unknown 0x5nnn instruction"),
+            },
+            0x6000 => self.op_load_value(parser::x(instruction), parser::kk(instruction)),
+            0x7000 => self.op_add_value(parser::x(instruction), parser::kk(instruction)),
+            0x8000 => match instruction & 0x000f {
+                0x0 => self.op_load_register(parser::x(instruction), parser::y(instruction)),
+                0x1 => self.op_bitwise_or(parser::x(instruction), parser::y(instruction)),
+                0x2 => self.op_bitwise_and(parser::x(instruction), parser::y(instruction)),
+                0x3 => self.op_bitwise_xor(parser::x(instruction), parser::y(instruction)),
+                0x4 => self.op_add_register(parser::x(instruction), parser::y(instruction)),
+                0x5 => self.op_subtract_register(parser::x(instruction), parser::y(instruction)),
+                0x6 => self.op_shift_right(parser::x(instruction)),
+                0x7 => self.op_subtract_negative(parser::x(instruction), parser::y(instruction)),
+                0xe => self.op_shift_left(parser::x(instruction)),
+                _ => panic!("unknown 0x8nnn instruction"),
+            },
+            0x9000 => match instruction & 0x000f {
+                0x0 => {
+                    self.op_skip_not_equal_registers(parser::x(instruction), parser::y(instruction))
+                }
+                _ => panic!("unknown 0x9nnn instruction"),
+            },
+            0xa000 => self.op_set_i_register(parser::nnn(instruction)),
+            0xb000 => self.op_jump_to_v0_plus_addr(parser::nnn(instruction)),
+            0xc000 => self.op_random(parser::x(instruction), parser::kk(instruction)),
+            0xd000 => self.op_display_sprite(
+                parser::x(instruction),
+                parser::y(instruction),
+                parser::n(instruction),
+            ),
+            0xe000 => match instruction & 0x00ff {
+                0x9e => self.op_skip_key_pressed(parser::x(instruction)),
+                0xa1 => self.op_skip_key_not_pressed(parser::x(instruction)),
+                _ => panic!("unknown 0xennn instruction"),
+            },
+            0xf000 => match instruction & 0x00ff {
+                0x07 => self.op_load_delay_timer(parser::x(instruction)),
+                0x0a => self.op_wait_for_key_press(parser::x(instruction)),
+                0x15 => self.op_set_delay_timer(parser::x(instruction)),
+                0x18 => self.op_set_sound_timer(parser::x(instruction)),
+                0x1e => self.op_add_i(parser::x(instruction)),
+                0x29 => self.op_set_sprite_location(parser::x(instruction)),
+                0x33 => self.op_load_bcd(parser::x(instruction)),
+                0x55 => self.op_store_registers(parser::x(instruction)),
+                0x65 => self.op_load_registers(parser::x(instruction)),
+                _ => panic!("unknown 0xfnnn instruction"),
+            },
+            _ => panic!("unknown instruction {:#04x}", instruction),
+        }
     }
 
     //////////////////////////////////////
@@ -236,8 +319,11 @@ impl Chip8 {
     }
 
     // Fx0A - LD Vx, K
-    fn op_wait_for_key_press(&mut self, x: usize) {
-        todo!();
+    fn op_wait_for_key_press(&mut self, x: u8) {
+        if let Some(key) = self.keyboard.get_pressed_key() {
+            self.cpu.v.set(x, key);
+            self.cpu.pc.advance();
+        }
     }
 
     // Fx15 - LD DT, Vx
