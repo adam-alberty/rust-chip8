@@ -19,6 +19,13 @@ impl Keyboard {
                 return Some(idx);
             }
         }
+
         None
+    }
+
+    pub fn set_key(&mut self, key: u8, is_pressed: bool) {
+        if let Some(slot) = self.0.get_mut(key as usize) {
+            *slot = is_pressed;
+        }
     }
 }

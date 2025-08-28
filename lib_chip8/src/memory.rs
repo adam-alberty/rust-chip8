@@ -78,9 +78,4 @@ impl Memory {
         }
         FONTSET_START_ADDRESS + digit as usize * 5
     }
-
-    pub fn get_sprite(&self, digit: u8) -> &[u8] {
-        let start_address = self.get_sprite_address(digit);
-        &self.0[start_address..start_address + 5]
-    }
 }

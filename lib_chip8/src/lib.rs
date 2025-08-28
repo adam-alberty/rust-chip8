@@ -20,7 +20,7 @@ pub struct Chip8 {
     stack: Stack,
     memory: Memory,
     pub display: Display,
-    keyboard: Keyboard,
+    pub keyboard: Keyboard,
     pub timers: Timers,
 }
 
