@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 pixels = "0.15.0"
 winit = "0.30.12"
+rodio = "0.21.1"
 lib_chip8 = { path = "../lib_chip8" }

@@ -27,7 +27,12 @@ impl Timers {
         };
     }
 
-    pub fn decrement(&mut self, t: Timer) {
+    pub fn tick(&mut self) {
+        self.decrement(Timer::Delay);
+        self.decrement(Timer::Sound);
+    }
+
+    fn decrement(&mut self, t: Timer) {
         match t {
             Timer::Delay => {
                 if self.delay > 0 {

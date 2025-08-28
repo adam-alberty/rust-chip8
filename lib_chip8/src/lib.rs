@@ -6,7 +6,7 @@ mod keyboard;
 mod memory;
 mod parser;
 mod stack;
-mod timers;
+pub mod timers;
 
 use cpu::Cpu;
 use display::Display;
@@ -21,7 +21,7 @@ pub struct Chip8 {
     memory: Memory,
     pub display: Display,
     keyboard: Keyboard,
-    timers: Timers,
+    pub timers: Timers,
 }
 
 impl Chip8 {
@@ -30,7 +30,7 @@ impl Chip8 {
     //////////////////////////////////////
 
     pub fn new() -> Self {
-        Chip8 {
+        Self {
             cpu: Cpu::new(),
             stack: Stack::new(),
             memory: Memory::new(),
@@ -253,7 +253,7 @@ impl Chip8 {
 
     // 8xyE - SHL Vx {, Vy}
     fn op_shift_left(&mut self, x: u8) {
-        self.cpu.v.set(0xf, self.cpu.v.get(x) & 1);
+        self.cpu.v.set(0xf, (self.cpu.v.get(x) >> 7) & 1);
         self.cpu.v.set(x, self.cpu.v.get(x) << 1);
         self.cpu.pc.advance();
     }
