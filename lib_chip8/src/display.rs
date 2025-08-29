@@ -43,15 +43,15 @@ impl Display {
         collision
     }
 
-    fn get_pixel(&self, x: usize, y: usize) -> bool {
-        let x = x % DISPLAY_WIDTH;
-        let y = y % DISPLAY_HEIGHT;
+    fn get_pixel(&self, mut x: usize, mut y: usize) -> bool {
+        x %= DISPLAY_WIDTH;
+        y %= DISPLAY_HEIGHT;
         self.0[y * DISPLAY_WIDTH + x]
     }
 
-    fn set_pixel(&mut self, x: usize, y: usize, on: bool) {
-        let x = x % DISPLAY_WIDTH;
-        let y = y % DISPLAY_HEIGHT;
+    fn set_pixel(&mut self, mut x: usize, mut y: usize, on: bool) {
+        x %= DISPLAY_WIDTH;
+        y %= DISPLAY_HEIGHT;
         self.0[y * DISPLAY_WIDTH + x] = on
     }
 }

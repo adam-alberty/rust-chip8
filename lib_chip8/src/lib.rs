@@ -86,9 +86,9 @@ impl Chip8 {
                 0x3 => self.op_bitwise_xor(parser::x(instruction), parser::y(instruction)),
                 0x4 => self.op_add_register(parser::x(instruction), parser::y(instruction)),
                 0x5 => self.op_subtract_register(parser::x(instruction), parser::y(instruction)),
-                0x6 => self.op_shift_right(parser::x(instruction)),
+                0x6 => self.op_shift_right(parser::x(instruction), parser::y(instruction)),
                 0x7 => self.op_subtract_negative(parser::x(instruction), parser::y(instruction)),
-                0xe => self.op_shift_left(parser::x(instruction)),
+                0xe => self.op_shift_left(parser::x(instruction), parser::y(instruction)),
                 _ => panic!("unknown 0x8nnn instruction"),
             },
             0x9000 => match instruction & 0x000f {
@@ -235,8 +235,8 @@ impl Chip8 {
     }
 
     // 8xy6 - SHR Vx {, Vy}
-    fn op_shift_right(&mut self, x: u8) {
-        let value = self.cpu.v.get(x);
+    fn op_shift_right(&mut self, x: u8, y: u8) {
+        let value = self.cpu.v.get(y);
         self.cpu.v.set(x, value >> 1);
         self.cpu.v.set(0xf, value & 1);
         self.cpu.pc.advance();
@@ -253,8 +253,8 @@ impl Chip8 {
     }
 
     // 8xyE - SHL Vx {, Vy}
-    fn op_shift_left(&mut self, x: u8) {
-        let value = self.cpu.v.get(x);
+    fn op_shift_left(&mut self, x: u8, y: u8) {
+        let value = self.cpu.v.get(y);
         self.cpu.v.set(x, value << 1);
         self.cpu.v.set(0xf, (value >> 7) & 1);
         self.cpu.pc.advance();
@@ -369,23 +369,28 @@ impl Chip8 {
 
     // Fx55 - LD [I], Vx
     fn op_store_registers(&mut self, x: u8) {
+        let i = self.cpu.i.get();
         for idx in 0..=x {
-            self.memory.set(
-                self.cpu.i.get() as usize + idx as usize,
-                self.cpu.v.get(idx),
-            );
+            self.memory
+                .set(i as usize + idx as usize, self.cpu.v.get(idx));
         }
+        // quirk
+        self.cpu.i.set(i + (x as u16) + 1);
+
         self.cpu.pc.advance();
     }
 
     // Fx65 - LD Vx, [I]
     fn op_load_registers(&mut self, x: u8) {
+        let i = self.cpu.i.get();
         for idx in 0..=x {
-            self.cpu.v.set(
-                idx,
-                self.memory.get(self.cpu.i.get() as usize + idx as usize),
-            );
+            self.cpu
+                .v
+                .set(idx, self.memory.get(i as usize + idx as usize));
         }
+        // quirk
+        self.cpu.i.set(i + (x as u16) + 1);
+
         self.cpu.pc.advance();
     }
 }
