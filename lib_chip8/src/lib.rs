@@ -198,18 +198,21 @@ impl Chip8 {
     // 8xy1 - OR Vx, Vy
     fn op_bitwise_or(&mut self, x: u8, y: u8) {
         self.cpu.v.set(x, self.cpu.v.get(x) | self.cpu.v.get(y));
+        self.cpu.v.set(0xf, 0);
         self.cpu.pc.advance();
     }
 
     // 8xy2 - AND Vx, Vy
     fn op_bitwise_and(&mut self, x: u8, y: u8) {
         self.cpu.v.set(x, self.cpu.v.get(x) & self.cpu.v.get(y));
+        self.cpu.v.set(0xf, 0);
         self.cpu.pc.advance();
     }
 
     // 8xy3 - XOR Vx, Vy
     fn op_bitwise_xor(&mut self, x: u8, y: u8) {
         self.cpu.v.set(x, self.cpu.v.get(x) ^ self.cpu.v.get(y));
+        self.cpu.v.set(0xf, 0);
         self.cpu.pc.advance();
     }
 
@@ -223,38 +226,37 @@ impl Chip8 {
 
     // 8xy5 - SUB Vx, Vy
     fn op_subtract_register(&mut self, x: u8, y: u8) {
-        self.cpu
-            .v
-            .set(0xf, (self.cpu.v.get(x) > self.cpu.v.get(y)) as u8);
+        let vf_value = self.cpu.v.get(x) >= self.cpu.v.get(y);
         self.cpu
             .v
             .set(x, self.cpu.v.get(x).wrapping_sub(self.cpu.v.get(y)));
-
+        self.cpu.v.set(0xf, vf_value as u8);
         self.cpu.pc.advance();
     }
 
     // 8xy6 - SHR Vx {, Vy}
     fn op_shift_right(&mut self, x: u8) {
-        self.cpu.v.set(0xf, self.cpu.v.get(x) & 1);
-        self.cpu.v.set(x, self.cpu.v.get(x) >> 1);
+        let value = self.cpu.v.get(x);
+        self.cpu.v.set(x, value >> 1);
+        self.cpu.v.set(0xf, value & 1);
         self.cpu.pc.advance();
     }
 
     // 8xy7 - SUBN Vx, Vy
     fn op_subtract_negative(&mut self, x: u8, y: u8) {
-        self.cpu
-            .v
-            .set(0xf, (self.cpu.v.get(y) > self.cpu.v.get(x)) as u8);
+        let vf_value = self.cpu.v.get(y) >= self.cpu.v.get(x);
         self.cpu
             .v
             .set(x, self.cpu.v.get(y).wrapping_sub(self.cpu.v.get(x)));
+        self.cpu.v.set(0xf, vf_value as u8);
         self.cpu.pc.advance();
     }
 
     // 8xyE - SHL Vx {, Vy}
     fn op_shift_left(&mut self, x: u8) {
-        self.cpu.v.set(0xf, (self.cpu.v.get(x) >> 7) & 1);
-        self.cpu.v.set(x, self.cpu.v.get(x) << 1);
+        let value = self.cpu.v.get(x);
+        self.cpu.v.set(x, value << 1);
+        self.cpu.v.set(0xf, (value >> 7) & 1);
         self.cpu.pc.advance();
     }
 
