@@ -1,7 +1,7 @@
 use lib_chip8::{Chip8, timers::Timer};
 use pixels::{Pixels, SurfaceTexture};
 use rodio::{
-    Sink,
+    OutputStream, Sink,
     source::{SineWave, Source},
 };
 use std::{
@@ -20,7 +20,7 @@ use winit::{
 
 const DISPLAY_WIDTH: usize = 64;
 const DISPLAY_HEIGHT: usize = 32;
-const SCALE: usize = 20;
+const SCALE: usize = 25;
 const CPU_HZ: u64 = 700;
 const TIMER_HZ: u64 = 60;
 const CPU_TICK_DURATION: Duration = Duration::from_nanos(1_000_000_000 / CPU_HZ);
@@ -86,7 +86,7 @@ impl<'a> ApplicationHandler for App<'a> {
             }
 
             WindowEvent::RedrawRequested => {
-                if let Some(pixels) = &mut self.pixels {
+                if let (Some(window), Some(pixels)) = (&self.window, &mut self.pixels) {
                     // Display pixels on screen
                     let chip8 = self.chip8.lock().unwrap();
                     let display = chip8.display.dump();
@@ -102,10 +102,7 @@ impl<'a> ApplicationHandler for App<'a> {
                     }
                     drop(chip8);
                     pixels.render().unwrap();
-
-                    // Request the next frame ~16ms later
-                    let next_frame = Instant::now() + Duration::from_secs_f64(1.0 / 60.0);
-                    event_loop.set_control_flow(ControlFlow::WaitUntil(next_frame));
+                    window.request_redraw();
                 }
             }
             _ => {}
@@ -113,13 +110,14 @@ impl<'a> ApplicationHandler for App<'a> {
     }
 }
 
-fn play_beep(sink: &Sink) {
-    if sink.empty() {
-        let source = SineWave::new(440.0).amplify(0.20).repeat_infinite();
-        sink.append(source);
-    } else {
-        sink.play();
-    }
+fn create_beep_sink() -> (Sink, OutputStream) {
+    let stream_handle =
+        rodio::OutputStreamBuilder::open_default_stream().expect("open default audio stream");
+    let sink = rodio::Sink::connect_new(&stream_handle.mixer());
+    let source = SineWave::new(440.0).amplify(0.25).repeat_infinite();
+    sink.append(source);
+
+    (sink, stream_handle)
 }
 
 fn map_keycode_to_chip8(keycode: PhysicalKey) -> Option<u8> {
@@ -152,12 +150,14 @@ fn main() -> Result<(), EventLoopError> {
 
     // Construct the chip
     let mut chip = Chip8::new();
+
+    // Load the ROM
     chip.load_rom(&rom_bytes).unwrap_or_else(|e| {
         panic!("Failed to load rom: {}", e);
     });
 
     let event_loop = EventLoop::new().unwrap();
-    event_loop.set_control_flow(ControlFlow::WaitUntil(Instant::now()));
+    event_loop.set_control_flow(ControlFlow::Poll);
 
     let chip8 = Arc::new(Mutex::new(chip));
     let chip8_thread = Arc::clone(&chip8);
@@ -168,37 +168,35 @@ fn main() -> Result<(), EventLoopError> {
         chip8: chip8,
     };
 
+    // Emulation thread
     std::thread::spawn(move || {
         let now = Instant::now();
         let mut last_cpu_tick = now;
         let mut last_timer_tick = now;
+        let (sink, _output_stream) = create_beep_sink();
 
-        // Set up audio
-        let stream_handle =
-            rodio::OutputStreamBuilder::open_default_stream().expect("open default audio stream");
-        let sink = rodio::Sink::connect_new(&stream_handle.mixer());
         loop {
             let mut chip8 = chip8_thread.lock().unwrap();
             let now = Instant::now();
 
-            if now.duration_since(last_cpu_tick) >= CPU_TICK_DURATION {
+            while now.duration_since(last_cpu_tick) >= CPU_TICK_DURATION {
                 chip8.tick();
                 last_cpu_tick += CPU_TICK_DURATION;
             }
 
-            if now.duration_since(last_timer_tick) >= TIMER_TICK_DURATION {
+            while now.duration_since(last_timer_tick) >= TIMER_TICK_DURATION {
                 chip8.timers.tick();
                 last_timer_tick += TIMER_TICK_DURATION;
             }
 
             // Play sound if the sound timer is not 0
             if chip8.timers.get(Timer::Sound) > 0 {
-                play_beep(&sink);
+                sink.play();
             } else {
-                sink.stop();
+                sink.pause();
             }
-
-            std::thread::sleep(Duration::from_micros(100));
+            drop(chip8);
+            std::thread::sleep(Duration::from_micros(1_000));
         }
     });
 
