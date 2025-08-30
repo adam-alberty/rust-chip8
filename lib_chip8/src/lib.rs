@@ -1,5 +1,6 @@
 use rand::random;
 
+mod config;
 mod cpu;
 mod display;
 mod keyboard;
@@ -41,7 +42,7 @@ impl Chip8 {
     }
 
     pub fn load_rom(&mut self, bytes: &[u8]) -> Result<(), String> {
-        self.memory.load(bytes)
+        self.memory.load_rom(bytes)
     }
 
     pub fn tick(&mut self) {

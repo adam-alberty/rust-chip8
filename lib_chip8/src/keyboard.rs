@@ -1,9 +1,9 @@
-const KEY_COUNT: u8 = 16;
+use crate::config;
 
-pub struct Keyboard([bool; KEY_COUNT as usize]);
+pub struct Keyboard([bool; config::KEY_COUNT as usize]);
 impl Keyboard {
     pub fn new() -> Self {
-        Keyboard([false; KEY_COUNT as usize])
+        Keyboard([false; config::KEY_COUNT as usize])
     }
 
     pub fn is_pressed(&mut self, key: u8) -> bool {
@@ -14,12 +14,11 @@ impl Keyboard {
     }
 
     pub fn get_pressed_key(&mut self) -> Option<u8> {
-        for idx in 0..KEY_COUNT {
+        for idx in 0..config::KEY_COUNT {
             if self.0[idx as usize] {
                 return Some(idx);
             }
         }
-
         None
     }
 

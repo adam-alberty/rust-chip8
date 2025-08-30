@@ -1,24 +1,20 @@
-/////////////////////////////////////////////
-///                 STACK                 ///
-/////////////////////////////////////////////
-
-const STACK_SIZE: usize = 16;
+use crate::config;
 
 pub struct Stack {
-    data: [u16; STACK_SIZE],
+    data: [u16; config::STACK_SIZE],
     sp: usize, // stack pointer
 }
 
 impl Stack {
     pub fn new() -> Self {
         Stack {
-            data: [0; STACK_SIZE],
+            data: [0; config::STACK_SIZE],
             sp: 0,
         }
     }
 
     pub fn push(&mut self, value: u16) {
-        if self.sp >= STACK_SIZE {
+        if self.sp >= config::STACK_SIZE {
             panic!(
                 "Stack overflow: tried to push {:04X} with SP at {}",
                 value, self.sp
@@ -61,7 +57,7 @@ mod tests {
     #[should_panic]
     fn test_stack_push_overflow() {
         let mut s = Stack::new();
-        s.sp = 16;
+        s.sp = config::STACK_SIZE;
         s.push(1);
     }
     #[test]

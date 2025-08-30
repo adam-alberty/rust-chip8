@@ -1,14 +1,12 @@
 /////////////////////////////////////////////
 ///               DISPLAY                 ///
 /////////////////////////////////////////////
+use crate::config;
 
-const DISPLAY_WIDTH: usize = 64;
-const DISPLAY_HEIGHT: usize = 32;
-
-pub struct Display([bool; DISPLAY_WIDTH * DISPLAY_HEIGHT]);
+pub struct Display([bool; config::DISPLAY_WIDTH * config::DISPLAY_HEIGHT]);
 impl Display {
     pub fn new() -> Self {
-        Display([false; DISPLAY_WIDTH * DISPLAY_HEIGHT])
+        Display([false; config::DISPLAY_WIDTH * config::DISPLAY_HEIGHT])
     }
 
     pub fn dump(&self) -> &[bool] {
@@ -17,10 +15,6 @@ impl Display {
 
     pub fn clear(&mut self) {
         self.0.fill(false);
-    }
-
-    pub fn get_resolution(&self) -> (usize, usize) {
-        (DISPLAY_WIDTH, DISPLAY_HEIGHT)
     }
 
     pub fn display_sprite(&mut self, pos_x: usize, pos_y: usize, data: &[u8]) -> bool {
@@ -44,14 +38,14 @@ impl Display {
     }
 
     fn get_pixel(&self, mut x: usize, mut y: usize) -> bool {
-        x %= DISPLAY_WIDTH;
-        y %= DISPLAY_HEIGHT;
-        self.0[y * DISPLAY_WIDTH + x]
+        x %= config::DISPLAY_WIDTH;
+        y %= config::DISPLAY_HEIGHT;
+        self.0[y * config::DISPLAY_WIDTH + x]
     }
 
     fn set_pixel(&mut self, mut x: usize, mut y: usize, on: bool) {
-        x %= DISPLAY_WIDTH;
-        y %= DISPLAY_HEIGHT;
-        self.0[y * DISPLAY_WIDTH + x] = on
+        x %= config::DISPLAY_WIDTH;
+        y %= config::DISPLAY_HEIGHT;
+        self.0[y * config::DISPLAY_WIDTH + x] = on
     }
 }

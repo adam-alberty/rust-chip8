@@ -1,24 +1,23 @@
-const REGISTER_COUNT: usize = 16;
-
+use crate::config;
 pub struct Cpu {
-    pub v: GeneralRegisters, // general purpose registers
+    pub v: GeneralRegisters,
     pub i: IRegister,
     pub pc: ProgramCounter,
 }
 impl Cpu {
     pub fn new() -> Self {
         Cpu {
-            v: GeneralRegisters([0; REGISTER_COUNT]),
+            v: GeneralRegisters([0; config::REGISTER_COUNT]),
             i: IRegister(0),
             pc: ProgramCounter(0x200),
         }
     }
 }
 
-pub struct GeneralRegisters([u8; REGISTER_COUNT]);
+pub struct GeneralRegisters([u8; config::REGISTER_COUNT]);
 impl GeneralRegisters {
     fn bounds_check(&self, index: u8) -> usize {
-        if index as usize >= self.0.len() {
+        if index as usize >= config::REGISTER_COUNT {
             panic!(
                 "out of range register access: {} (0..{})",
                 index,
@@ -59,6 +58,6 @@ impl ProgramCounter {
     }
 
     pub fn advance(&mut self) {
-        self.0 = self.0.checked_add(2).expect("Program counter overflow");
+        self.0 = self.0.wrapping_add(2);
     }
 }
