@@ -1,6 +1,6 @@
 use rand::random;
 
-mod config;
+pub mod config;
 mod cpu;
 mod display;
 mod keyboard;

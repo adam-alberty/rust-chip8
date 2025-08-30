@@ -2,7 +2,7 @@ use lib_chip8::{Chip8, timers::Timer};
 use pixels::{Pixels, SurfaceTexture};
 use rodio::{
     OutputStream, Sink,
-    source::{SineWave, Source},
+    source::{Source, SquareWave},
 };
 use std::{
     sync::{Arc, Mutex},
@@ -18,8 +18,8 @@ use winit::{
     window::{Window, WindowId},
 };
 
-const DISPLAY_WIDTH: usize = 64;
-const DISPLAY_HEIGHT: usize = 32;
+use lib_chip8::config;
+
 const SCALE: usize = 25;
 const CPU_HZ: u64 = 700;
 const TIMER_HZ: u64 = 60;
@@ -40,19 +40,19 @@ impl<'a> ApplicationHandler for App<'a> {
                     Window::default_attributes()
                         .with_title("CHIP-8 Emulator")
                         .with_inner_size(LogicalSize::new(
-                            DISPLAY_WIDTH as f64 * SCALE as f64,
-                            DISPLAY_HEIGHT as f64 * SCALE as f64,
+                            config::DISPLAY_WIDTH as f64 * SCALE as f64,
+                            config::DISPLAY_HEIGHT as f64 * SCALE as f64,
                         )),
                 )
                 .unwrap(),
         );
 
         let pixels = Pixels::new(
-            DISPLAY_WIDTH as u32,
-            DISPLAY_HEIGHT as u32,
+            config::DISPLAY_WIDTH as u32,
+            config::DISPLAY_HEIGHT as u32,
             SurfaceTexture::new(
-                (DISPLAY_WIDTH * SCALE) as u32,
-                (DISPLAY_HEIGHT * SCALE) as u32,
+                (config::DISPLAY_WIDTH * SCALE) as u32,
+                (config::DISPLAY_HEIGHT * SCALE) as u32,
                 Arc::clone(&window),
             ),
         )
@@ -114,7 +114,7 @@ fn create_beep_sink() -> (Sink, OutputStream) {
     let stream_handle =
         rodio::OutputStreamBuilder::open_default_stream().expect("open default audio stream");
     let sink = rodio::Sink::connect_new(&stream_handle.mixer());
-    let source = SineWave::new(440.0).amplify(0.25).repeat_infinite();
+    let source = SquareWave::new(1000.0).amplify(0.25).repeat_infinite();
     sink.append(source);
 
     (sink, stream_handle)
@@ -196,7 +196,7 @@ fn main() -> Result<(), EventLoopError> {
                 sink.pause();
             }
             drop(chip8);
-            std::thread::sleep(Duration::from_micros(1_000));
+            std::thread::sleep(Duration::from_micros(100));
         }
     });
 
