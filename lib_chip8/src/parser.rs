@@ -23,3 +23,29 @@ pub fn y(instruction: u16) -> u8 {
 pub fn kk(instruction: u16) -> u8 {
     (instruction & 0x00ff) as u8
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nnn_works() {
+        assert_eq!(0x234, nnn(0x1234));
+    }
+    #[test]
+    fn n_works() {
+        assert_eq!(0x4, n(0x1234));
+    }
+    #[test]
+    fn x_works() {
+        assert_eq!(0x2, x(0x1234));
+    }
+    #[test]
+    fn y_works() {
+        assert_eq!(0x3, y(0x1234));
+    }
+    #[test]
+    fn kk_works() {
+        assert_eq!(0x34, kk(0x1234));
+    }
+}
