@@ -29,23 +29,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn nnn_works() {
+    fn test_parser_nnn() {
         assert_eq!(0x234, nnn(0x1234));
     }
     #[test]
-    fn n_works() {
+    fn test_parser_n() {
         assert_eq!(0x4, n(0x1234));
     }
     #[test]
-    fn x_works() {
+    fn test_parser_x() {
         assert_eq!(0x2, x(0x1234));
     }
     #[test]
-    fn y_works() {
+    fn test_parser_y() {
         assert_eq!(0x3, y(0x1234));
     }
     #[test]
-    fn kk_works() {
+    fn test_parser_kk() {
         assert_eq!(0x34, kk(0x1234));
     }
 }
