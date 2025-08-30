@@ -10,7 +10,7 @@ pub struct Timers {
 
 impl Timers {
     pub fn new() -> Self {
-        Timers { delay: 0, sound: 0 }
+        Self { delay: 0, sound: 0 }
     }
 
     pub fn get(&self, t: Timer) -> u8 {
@@ -28,22 +28,44 @@ impl Timers {
     }
 
     pub fn tick(&mut self) {
-        self.decrement(Timer::Delay);
-        self.decrement(Timer::Sound);
-    }
+        if self.sound > 0 {
+            self.sound -= 1;
+        }
 
-    fn decrement(&mut self, t: Timer) {
-        match t {
-            Timer::Delay => {
-                if self.delay > 0 {
-                    self.delay -= 1;
-                }
-            }
-            Timer::Sound => {
-                if self.sound > 0 {
-                    self.sound -= 1;
-                }
-            }
-        };
+        if self.delay > 0 {
+            self.delay -= 1;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_timer_setting() {
+        let mut t = Timers::new();
+        t.set(Timer::Sound, 10);
+        t.set(Timer::Delay, 20);
+        assert_eq!(t.get(Timer::Sound), 10);
+        assert_eq!(t.get(Timer::Delay), 20);
+    }
+    #[test]
+    fn test_timer_ticking() {
+        let mut t = Timers::new();
+
+        t.set(Timer::Sound, 10);
+        t.set(Timer::Delay, 20);
+
+        t.tick();
+        assert_eq!(t.get(Timer::Sound), 9);
+        assert_eq!(t.get(Timer::Delay), 19);
+    }
+    #[test]
+    fn test_timer_undeflowing() {
+        let mut t = Timers::new();
+        t.tick();
+        assert_eq!(t.get(Timer::Sound), 0);
+        assert_eq!(t.get(Timer::Delay), 0);
     }
 }
