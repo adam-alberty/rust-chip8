@@ -1,12 +1,12 @@
 # Rust Chip-8
 
-Cross-platform regular Chip-8 interpreter (not SUPER-CHIP or XO-CHIP).
+Cross-platform original Chip-8 interpreter.
 
 ## Installation
 
 1. Clone the repository
-2. `cargo build --release`
-3. The resulting binary will be in `./release/emulator`
+2. Build from source with `cargo build --release`
+3. The resulting binary will be in `./target/release/emulator`
 
 ## Usage
 
@@ -43,9 +43,6 @@ https://github.com/Timendus/chip8-test-suite test suite was used for testing.
 | IBM logo    | ✅     |
 | corax+      | ✅     |
 | flags       | ✅     |
-
-TODO
-
-| quirks | ✅ |
-| keypad | ✅ |
-| beep | ✅ |
+| quirks      | ❌     |
+| keypad      | ❌     |
+| beep        | ❌     |

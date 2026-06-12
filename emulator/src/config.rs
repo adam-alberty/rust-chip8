@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path, time::Duration};
-use winit::keyboard::KeyCode;
 
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct Color(pub u8, pub u8, pub u8, pub u8);
@@ -33,21 +32,11 @@ impl TimingConfig {
     }
 }
 
-// TODO
-// #[derive(Serialize, Deserialize)]
-// pub struct InputConfig {
-//     pub keymap: [KeyCode; 16],
-// }
-
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub display: DisplayConfig,
     pub timing: TimingConfig,
     pub audio: AudioConfig,
-    // pub input: InputConfig,
-    pub pause_on_focus_loss: bool,
-    // TODO
-    // pub program_start_address: u16,
 }
 
 impl Default for Config {
@@ -63,8 +52,6 @@ impl Default for Config {
                 timer_hz: 60,
             },
             audio: AudioConfig { enabled: true },
-            pause_on_focus_loss: false,
-            // program_start_address: (),
         }
     }
 }

@@ -6,6 +6,7 @@ use pixels::{Pixels, SurfaceTexture};
 use rodio::Player;
 use std::path::Path;
 use std::{sync::Arc, time::Instant};
+use winit::keyboard::PhysicalKey;
 use winit::{
     application::ApplicationHandler,
     dpi::LogicalSize,
